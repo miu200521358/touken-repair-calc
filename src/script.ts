@@ -106,6 +106,11 @@ const stageLabels: Record<StageKey, string> = {
   awakened: "\u6975",
 };
 
+const stageMaxLevels: Record<StageKey, number> = {
+  initial: 99,
+  awakened: 199,
+};
+
 const phaseLabels: Record<PhaseKey, string> = {
   initial: "\u521d",
   awakened: "\u6975",
@@ -208,7 +213,17 @@ function populateStageOptions(): void {
 function updateOutputs(): void {
   const weapon = cache.weaponSelect.value as WeaponKey;
   const stage = cache.stageSelect.value as StageKey;
-  const level = Number.parseInt(cache.levelInput.value, 10) || 1;
+  const levelUpperBound = stageMaxLevels[stage] ?? 199;
+  if (cache.levelInput.max !== levelUpperBound.toString()) {
+    cache.levelInput.max = levelUpperBound.toString();
+  }
+
+  const rawLevel = Number.parseInt(cache.levelInput.value, 10) || 1;
+  const level = clamp(rawLevel, 1, levelUpperBound);
+  if (level !== rawLevel) {
+    cache.levelInput.value = level.toString();
+  }
+
   const injury = Number.parseInt(cache.injuryInput.value, 10) || 0;
 
   cache.levelValue.textContent = level.toString();
@@ -246,6 +261,10 @@ function determinePhase(level: number, stage: StageKey): PhaseKey {
   }
 
   return stage === "awakened" ? "awakened" : "initial";
+}
+
+function clamp(value: number, lower: number, upper: number): number {
+  return Math.min(Math.max(value, lower), upper);
 }
 
 // Calculate repair time in seconds, guaranteeing the 30-second minimum.
@@ -306,4 +325,3 @@ function formatSeconds(totalSeconds: number): string {
     .map((segment) => segment.toString().padStart(2, "0"))
     .join(":");
 }
-

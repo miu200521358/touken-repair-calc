@@ -68,6 +68,10 @@ const stageLabels = {
     initial: "\u521d",
     awakened: "\u6975",
 };
+const stageMaxLevels = {
+    initial: 99,
+    awakened: 199,
+};
 const phaseLabels = {
     initial: "\u521d",
     awakened: "\u6975",
@@ -151,9 +155,18 @@ function populateStageOptions() {
 }
 // Recalculate when inputs change and write results back to the UI.
 function updateOutputs() {
+    var _a;
     const weapon = cache.weaponSelect.value;
     const stage = cache.stageSelect.value;
-    const level = Number.parseInt(cache.levelInput.value, 10) || 1;
+    const levelUpperBound = (_a = stageMaxLevels[stage]) !== null && _a !== void 0 ? _a : 199;
+    if (cache.levelInput.max !== levelUpperBound.toString()) {
+        cache.levelInput.max = levelUpperBound.toString();
+    }
+    const rawLevel = Number.parseInt(cache.levelInput.value, 10) || 1;
+    const level = clamp(rawLevel, 1, levelUpperBound);
+    if (level !== rawLevel) {
+        cache.levelInput.value = level.toString();
+    }
     const injury = Number.parseInt(cache.injuryInput.value, 10) || 0;
     cache.levelValue.textContent = level.toString();
     cache.injuryValue.textContent = injury.toString();
@@ -182,6 +195,9 @@ function determinePhase(level, stage) {
         return "bloom";
     }
     return stage === "awakened" ? "awakened" : "initial";
+}
+function clamp(value, lower, upper) {
+    return Math.min(Math.max(value, lower), upper);
 }
 // Calculate repair time in seconds, guaranteeing the 30-second minimum.
 function calculateRepairSeconds(level, lostHp, coefficient, phase) {
