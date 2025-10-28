@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>刀剣乱舞 手入れ時間・資材計算ツール</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1>刀剣乱舞 手入れ時間・資材計算ツール</h1>
+        <p>入力を変更すると結果が即時に更新されます。</p>
+      </header>
+
+      <noscript class="app__noscript">
+        JavaScript を有効にすると計算機能が動作します。
+      </noscript>
+
+      <section class="panel panel--inputs">
+        <h2>設定</h2>
+        <form class="controls" aria-label="手入れ計算の入力">
+          <div class="control">
+            <label for="weapon">刀種</label>
+            <select id="weapon" name="weapon"></select>
+          </div>
+
+          <div class="control">
+            <label for="stage">段階</label>
+            <select id="stage" name="stage"></select>
+          </div>
+
+          <div class="control">
+            <div class="control__header">
+              <label for="level">レベル</label>
+              <span id="levelValue" aria-live="polite">1</span>
+            </div>
+            <input
+              id="level"
+              name="level"
+              type="range"
+              min="1"
+              max="199"
+              value="1"
+              step="1"
+            />
+          </div>
+
+          <div class="control">
+            <div class="control__header">
+              <label for="injury">怪我（減少HP）</label>
+              <span id="injuryValue" aria-live="polite">0</span>
+            </div>
+            <input
+              id="injury"
+              name="injury"
+              type="range"
+              min="0"
+              max="99"
+              value="0"
+              step="1"
+            />
+          </div>
+        </form>
+      </section>
+
+      <section class="panel panel--outputs">
+        <h2>計算結果</h2>
+        <div class="summary">
+          <div class="summary__row">
+            <span class="summary__label">段階</span>
+            <span class="summary__value" id="phaseDisplay">初</span>
+          </div>
+          <div class="summary__row">
+            <span class="summary__label">手入れ時間</span>
+            <span class="summary__value summary__value--time" id="timeOutput"
+              >00:00:30</span
+            >
+          </div>
+        </div>
+
+        <div class="resources" aria-label="必要資材">
+          <div class="resource">
+            <span class="resource__label">木炭</span>
+            <span class="resource__value" id="charcoalOutput">0</span>
+          </div>
+          <div class="resource">
+            <span class="resource__label">玉鋼</span>
+            <span class="resource__value" id="steelOutput">0</span>
+          </div>
+          <div class="resource">
+            <span class="resource__label">冷却材</span>
+            <span class="resource__value" id="coolantOutput">0</span>
+          </div>
+          <div class="resource">
+            <span class="resource__label">砥石</span>
+            <span class="resource__value" id="whetstoneOutput">0</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./public/script.js"></script>
+  </body>
+</html>
