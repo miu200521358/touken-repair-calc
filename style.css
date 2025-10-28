@@ -176,6 +176,27 @@ body {
   gap: 1rem;
 }
 
+.app__footer {
+  margin-top: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+  background-color: var(--surface-alt);
+  border: 1px solid var(--border);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.app__footer a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.app__footer a:hover,
+.app__footer a:focus-visible {
+  text-decoration: underline;
+}
+
 .resource {
   border: 1px solid var(--border);
   border-radius: 1rem;
