@@ -5,77 +5,78 @@
  */
 // --- Master data ------------------------------------------------------------------------------------
 const weaponCatalog = {
-    tantou: { label: "\u77ed\u5200", coefficient: 1.0 },
-    wakizashi: { label: "\u8108\u5dee", coefficient: 1.5 },
-    uchigatana: { label: "\u6253\u5200", coefficient: 2.0 },
-    uchigatana_rare4: { label: "\u30ec\u30a24\u6253\u5200", coefficient: 4.0 },
-    tachi: { label: "\u592a\u5200", coefficient: 4.0 },
-    ootachi: { label: "\u5927\u592a\u5200", coefficient: 6.0 },
-    yari: { label: "\u69cd", coefficient: 2.5 },
-    naginata: { label: "\u85a9\u5200", coefficient: 3.0 },
+    tantou: { label: "短刀", coefficient: 1.0 },
+    wakizashi: { label: "脇差", coefficient: 1.5 },
+    uchigatana: { label: "打刀", coefficient: 2.0 },
+    uchigatana_rare4: { label: "レア4打刀", coefficient: 4.0 },
+    tachi: { label: "太刀", coefficient: 4.0 },
+    ootachi: { label: "大太刀", coefficient: 6.0 },
+    yari: { label: "槍", coefficient: 2.5 },
+    naginata: { label: "薙刀", coefficient: 3.0 },
 };
 const resourceBaseExpressions = {
     tantou: {
-        charcoal: "\u221a16",
-        steel: "\u221a16",
-        coolant: "\u221a16",
-        whetstone: "\u221a16",
+        charcoal: "√16",
+        steel: "√16",
+        coolant: "√16",
+        whetstone: "√16",
     },
     wakizashi: {
-        charcoal: "\u221a11",
-        steel: "\u221a16",
-        coolant: "\u221a7",
-        whetstone: "\u221a11",
+        charcoal: "√11",
+        steel: "√16",
+        coolant: "√7",
+        whetstone: "√11",
     },
     uchigatana: {
-        charcoal: "\u221a12.25",
-        steel: "\u221a12.25",
-        coolant: "\u221a4.34",
-        whetstone: "\u221a12.25",
+        charcoal: "√12.25",
+        steel: "√12.25",
+        coolant: "√4.34",
+        whetstone: "√12.25",
     },
     uchigatana_rare4: {
-        charcoal: "\u221a3.06",
-        steel: "\u221a9",
-        coolant: "\u221a9",
-        whetstone: "\u221a1.56",
+        charcoal: "√3.06",
+        steel: "√9",
+        coolant: "√9",
+        whetstone: "√1.56",
     },
     tachi: {
-        charcoal: "\u221a3.06",
-        steel: "\u221a8.75",
-        coolant: "\u221a8.75",
-        whetstone: "\u221a1.67",
+        charcoal: "√3.06",
+        steel: "√8.75",
+        coolant: "√8.75",
+        whetstone: "√1.67",
     },
     ootachi: {
-        charcoal: "\u221a1.36",
-        steel: "\u221a5.44",
-        coolant: "\u221a5.44",
-        whetstone: "\u221a0.69",
+        charcoal: "√1.36",
+        steel: "√5.44",
+        coolant: "√5.44",
+        whetstone: "√0.69",
     },
     yari: {
-        charcoal: "\u221a31.36",
-        steel: "\u221a31.36",
-        coolant: "\u221a7.84",
-        whetstone: "\u221a31.36",
+        charcoal: "√31.36",
+        steel: "√31.36",
+        coolant: "√7.84",
+        whetstone: "√31.36",
     },
     naginata: {
-        charcoal: "\u221a25",
-        steel: "\u221a25",
-        coolant: "\u221a6.25",
-        whetstone: "\u221a25",
+        charcoal: "√25",
+        steel: "√25",
+        coolant: "√6.25",
+        whetstone: "√25",
     },
 };
 const stageLabels = {
-    initial: "\u521d",
-    awakened: "\u6975",
+    initial: "初",
+    awakened: "極",
 };
 const stageMaxLevels = {
     initial: 99,
     awakened: 199,
 };
+const INJURY_MAX = 150;
 const phaseLabels = {
-    initial: "\u521d",
-    awakened: "\u6975",
-    bloom: "\u6975\u958b\u82b1",
+    initial: "初",
+    awakened: "極",
+    bloom: "極開花",
 };
 const resourceKinds = [
     "charcoal",
@@ -167,7 +168,14 @@ function updateOutputs() {
     if (level !== rawLevel) {
         cache.levelInput.value = level.toString();
     }
-    const injury = Number.parseInt(cache.injuryInput.value, 10) || 0;
+    if (cache.injuryInput.max !== INJURY_MAX.toString()) {
+        cache.injuryInput.max = INJURY_MAX.toString();
+    }
+    const rawInjury = Number.parseInt(cache.injuryInput.value, 10) || 0;
+    const injury = clamp(rawInjury, 0, INJURY_MAX);
+    if (injury !== rawInjury) {
+        cache.injuryInput.value = injury.toString();
+    }
     cache.levelValue.textContent = level.toString();
     cache.injuryValue.textContent = injury.toString();
     const coefficient = weaponCatalog[weapon].coefficient;
@@ -182,7 +190,7 @@ function updateOutputs() {
 }
 // Interpret a string like "√16" as sqrt(16) and return 4.
 function parseInnerRoot(expression) {
-    const sanitized = expression.replace("\u221a", "").trim();
+    const sanitized = expression.replace("√", "").trim();
     const numericValue = Number.parseFloat(sanitized);
     if (Number.isNaN(numericValue)) {
         throw new Error(`Invalid resource expression: ${expression}`);
