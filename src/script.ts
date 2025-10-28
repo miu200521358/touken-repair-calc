@@ -11,7 +11,8 @@ type WeaponKey =
   | "tachi"
   | "ootachi"
   | "yari"
-  | "naginata";
+  | "naginata"
+  | "tsurugi";
 
 type StageKey = "initial" | "awakened";
 
@@ -48,6 +49,7 @@ const weaponCatalog: Record<WeaponKey, WeaponDefinition> = {
   ootachi: { label: "大太刀", coefficient: 6.0 },
   yari: { label: "槍", coefficient: 2.5 },
   naginata: { label: "薙刀", coefficient: 3.0 },
+  tsurugi: { label: "剣", coefficient: 3.5 },
 };
 
 const resourceBaseExpressions: Record<WeaponKey, ResourceExpressionSet> = {
@@ -99,6 +101,12 @@ const resourceBaseExpressions: Record<WeaponKey, ResourceExpressionSet> = {
     coolant: "√6.25",
     whetstone: "√25",
   },
+  tsurugi: {
+    charcoal: "√9",
+    steel: "√9",
+    coolant: "√9",
+    whetstone: "√9",
+  },
 };
 
 const stageLabels: Record<StageKey, string> = {
@@ -113,6 +121,30 @@ const stageMaxLevels: Record<StageKey, number> = {
 
 const INJURY_MAX = 150;
 
+const stageWeaponMap: Record<StageKey, WeaponKey[]> = {
+  initial: [
+    "tantou",
+    "wakizashi",
+    "uchigatana",
+    "uchigatana_rare4",
+    "tachi",
+    "ootachi",
+    "yari",
+    "naginata",
+    "tsurugi",
+  ],
+  awakened: [
+    "tantou",
+    "wakizashi",
+    "uchigatana",
+    "uchigatana_rare4",
+    "tachi",
+    "ootachi",
+    "yari",
+    "naginata",
+  ],
+};
+
 const phaseLabels: Record<PhaseKey, string> = {
   initial: "初",
   awakened: "極",
@@ -126,7 +158,7 @@ const resourceKinds: ResourceKind[] = [
   "whetstone",
 ];
 
-// Cache the square-root results so we only pay the cost once.
+// Cache square roots up front to keep recalculation lean.
 const precomputedResourceBases: Record<WeaponKey, ResourceSet> =
   Object.keys(resourceBaseExpressions).reduce((accumulator, weapon) => {
     const weaponKey = weapon as WeaponKey;
@@ -167,17 +199,19 @@ const cache = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  populateWeaponOptions();
   populateStageOptions();
+  const initialStage = (cache.stageSelect.value as StageKey) || "initial";
+  populateWeaponOptions(initialStage);
   bindEventListeners();
   updateOutputs();
 });
 
 // Attach input listeners so recalculation happens immediately.
 function bindEventListeners(): void {
-  const inputs = [
+  cache.stageSelect.addEventListener("change", handleStageChange);
+
+  const inputs: Array<HTMLInputElement | HTMLSelectElement> = [
     cache.weaponSelect,
-    cache.stageSelect,
     cache.levelInput,
     cache.injuryInput,
   ];
@@ -185,18 +219,8 @@ function bindEventListeners(): void {
   inputs.forEach((element) => {
     element.addEventListener("input", updateOutputs);
   });
-}
 
-// Render the weapon select options from the master catalog.
-function populateWeaponOptions(): void {
-  cache.weaponSelect.innerHTML = "";
-
-  Object.entries(weaponCatalog).forEach(([value, { label }]) => {
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = label;
-    cache.weaponSelect.append(option);
-  });
+  cache.weaponSelect.addEventListener("change", updateOutputs);
 }
 
 // Stage select is static but we still build it programmatically for clarity.
@@ -211,10 +235,46 @@ function populateStageOptions(): void {
   });
 }
 
+// Render weapon options based on the currently selected stage.
+function populateWeaponOptions(stage: StageKey): void {
+  const allowed =
+    stageWeaponMap[stage] ?? (Object.keys(weaponCatalog) as WeaponKey[]);
+  const previousSelection = cache.weaponSelect.value as WeaponKey | "";
+
+  cache.weaponSelect.innerHTML = "";
+
+  allowed.forEach((weapon) => {
+    const option = document.createElement("option");
+    option.value = weapon;
+    option.textContent = weaponCatalog[weapon].label;
+    cache.weaponSelect.append(option);
+  });
+
+  if (allowed.includes(previousSelection as WeaponKey)) {
+    cache.weaponSelect.value = previousSelection;
+  }
+
+  if (!allowed.includes(cache.weaponSelect.value as WeaponKey) && allowed.length) {
+    cache.weaponSelect.value = allowed[0];
+  }
+}
+
 // Recalculate when inputs change and write results back to the UI.
 function updateOutputs(): void {
-  const weapon = cache.weaponSelect.value as WeaponKey;
   const stage = cache.stageSelect.value as StageKey;
+  const allowedWeapons =
+    stageWeaponMap[stage] ?? (Object.keys(weaponCatalog) as WeaponKey[]);
+
+  if (!allowedWeapons.includes(cache.weaponSelect.value as WeaponKey) && allowedWeapons.length) {
+    cache.weaponSelect.value = allowedWeapons[0];
+  }
+
+  const weapon = cache.weaponSelect.value as WeaponKey;
+  const weaponDef = weaponCatalog[weapon];
+  if (!weaponDef) {
+    return;
+  }
+
   const levelUpperBound = stageMaxLevels[stage] ?? 199;
   if (cache.levelInput.max !== levelUpperBound.toString()) {
     cache.levelInput.max = levelUpperBound.toString();
@@ -239,7 +299,7 @@ function updateOutputs(): void {
   cache.levelValue.textContent = level.toString();
   cache.injuryValue.textContent = injury.toString();
 
-  const coefficient = weaponCatalog[weapon].coefficient;
+  const coefficient = weaponDef.coefficient;
   const phase = determinePhase(level, stage);
   const repairSeconds = calculateRepairSeconds(level, injury, coefficient, phase);
   const resourceCost = calculateResourceCost(weapon, injury, coefficient);
@@ -271,10 +331,6 @@ function determinePhase(level: number, stage: StageKey): PhaseKey {
   }
 
   return stage === "awakened" ? "awakened" : "initial";
-}
-
-function clamp(value: number, lower: number, upper: number): number {
-  return Math.min(Math.max(value, lower), upper);
 }
 
 // Calculate repair time in seconds, guaranteeing the 30-second minimum.
@@ -334,4 +390,14 @@ function formatSeconds(totalSeconds: number): string {
   return [hours, minutes, seconds]
     .map((segment) => segment.toString().padStart(2, "0"))
     .join(":");
+}
+
+function clamp(value: number, lower: number, upper: number): number {
+  return Math.min(Math.max(value, lower), upper);
+}
+
+function handleStageChange(): void {
+  const stage = cache.stageSelect.value as StageKey;
+  populateWeaponOptions(stage);
+  updateOutputs();
 }
