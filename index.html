@@ -31,14 +31,12 @@
           </div>
 
           <div class="control">
-            <div class="control__header">
-              <label for="level">レベル</label>
-              <span id="levelValue" aria-live="polite">1</span>
-            </div>
+            <label for="level">レベル</label>
             <input
               id="level"
               name="level"
-              type="range"
+              type="number"
+              inputmode="numeric"
               min="1"
               max="199"
               value="1"
@@ -47,14 +45,12 @@
           </div>
 
           <div class="control">
-            <div class="control__header">
-              <label for="injury">怪我（減少生存）</label>
-              <span id="injuryValue" aria-live="polite">0</span>
-            </div>
+            <label for="injury">怪我（減少生存）</label>
             <input
               id="injury"
               name="injury"
-              type="range"
+              type="number"
+              inputmode="numeric"
               min="0"
               max="150"
               value="0"

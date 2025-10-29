@@ -134,9 +134,7 @@ const cache = {
     weaponSelect: document.getElementById("weapon"),
     stageSelect: document.getElementById("stage"),
     levelInput: document.getElementById("level"),
-    levelValue: document.getElementById("levelValue"),
     injuryInput: document.getElementById("injury"),
-    injuryValue: document.getElementById("injuryValue"),
     phaseDisplay: document.getElementById("phaseDisplay"),
     timeOutput: document.getElementById("timeOutput"),
     resourceOutputs: {
@@ -165,6 +163,8 @@ function bindEventListeners() {
         element.addEventListener("input", updateOutputs);
     });
     cache.weaponSelect.addEventListener("change", updateOutputs);
+    enableWheelAdjustment(cache.levelInput);
+    enableWheelAdjustment(cache.injuryInput);
 }
 // Stage select is static but we still build it programmatically for clarity.
 function populateStageOptions() {
@@ -225,8 +225,6 @@ function updateOutputs() {
     if (injury !== rawInjury) {
         cache.injuryInput.value = injury.toString();
     }
-    cache.levelValue.textContent = level.toString();
-    cache.injuryValue.textContent = injury.toString();
     const coefficient = weaponDef.coefficient;
     const phase = determinePhase(level, stage);
     const repairSeconds = calculateRepairSeconds(level, injury, coefficient, phase);
@@ -304,4 +302,31 @@ function handleStageChange() {
     const stage = cache.stageSelect.value;
     populateWeaponOptions(stage);
     updateOutputs();
+}
+function enableWheelAdjustment(input) {
+    input.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        const rawCurrent = Number.parseInt(input.value, 10) || 0;
+        const delta = event.deltaY;
+        if (delta === 0) {
+            return;
+        }
+        const stepAttr = Number.parseInt(input.step, 10);
+        const step = Number.isNaN(stepAttr) || stepAttr <= 0 ? 1 : stepAttr;
+        const direction = delta < 0 ? 1 : -1;
+        const minAttr = Number.parseInt(input.min, 10);
+        const maxAttr = Number.parseInt(input.max, 10);
+        const minValue = Number.isNaN(minAttr)
+            ? Number.NEGATIVE_INFINITY
+            : minAttr;
+        const maxValue = Number.isNaN(maxAttr)
+            ? Number.POSITIVE_INFINITY
+            : maxAttr;
+        const nextValue = clamp(rawCurrent + direction * step, minValue, maxValue);
+        if (nextValue === rawCurrent) {
+            return;
+        }
+        input.value = nextValue.toString();
+        updateOutputs();
+    }, { passive: false });
 }

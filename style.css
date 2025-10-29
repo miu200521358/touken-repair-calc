@@ -76,23 +76,17 @@ body {
   gap: 0.65rem;
 }
 
-.control__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-}
-
 .control label {
   font-weight: 600;
 }
 
 .control select,
-.control input[type="range"] {
+.control input[type="number"] {
   width: 100%;
 }
 
-.control select {
+.control select,
+.control input[type="number"] {
   padding: 0.5rem;
   border-radius: 0.75rem;
   border: 1px solid var(--border);
@@ -101,42 +95,15 @@ body {
   transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
-.control select:focus {
+.control select:focus,
+.control input[type="number"]:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.15);
 }
 
-.control input[type="range"] {
-  appearance: none;
-  height: 6px;
-  border-radius: 999px;
-  background-color: var(--border);
-}
-
-.control input[type="range"]::-webkit-slider-thumb {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--accent);
-  cursor: pointer;
-  box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.15);
-}
-
-.control input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--accent);
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.15);
-}
-
-.control span[aria-live] {
+.control input[type="number"] {
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
 }
 
 .summary {
