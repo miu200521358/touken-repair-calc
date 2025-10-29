@@ -267,7 +267,8 @@ function calculateRepairSeconds(level, lostHp, coefficient, phase) {
         //   ・2025 年時点で収集した極開花（Lv100〜199）の修理秒数サンプル（減少生存1）を基に三次式で回帰。
         //   ・Lv150 以降の挙動に別定数が使われる可能性は引き続き残るため、追加データ入手時に再度フィッティングする。
         const repaired = g * coefficient * lostHp + 30;
-        return Math.max(30, Math.round(repaired));
+        // サンプリングデータ（減少生存1）と比較した結果、切り上げが最も誤差が小さかったため Math.ceil を採用。
+        return Math.max(30, Math.ceil(repaired));
     }
     const aTerm = level <= 11 ? 0 : Math.floor(Math.sqrt(level - 11)) * 10 + 50;
     const repaired = (level * 5 + aTerm) * coefficient * lostHp + 30;
