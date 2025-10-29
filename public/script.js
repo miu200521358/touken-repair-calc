@@ -257,10 +257,15 @@ function calculateRepairSeconds(level, lostHp, coefficient, phase) {
         return 30;
     }
     if (phase === "bloom") {
-        const g = 215.9086 + 5.9627 * level - 0.0231043 * level * level;
-        // NOTE: Lv150 以降で別定数が用いられている可能性があるため、
-        // 将来的に g2(Lv) = A2 + B2*Lv + C2*Lv^2 や √(A + B×Lv) への切り替えを検討する。
-        // この二次式モデルは 2025 年時点の極 Lv100〜199 データに基づく近似。
+        const levelSquared = level * level;
+        const levelCubed = levelSquared * level;
+        const g = 339.325408 +
+            5.5896113 * level +
+            -0.0386452486 * levelSquared +
+            0.0000829599381 * levelCubed;
+        // NOTE:
+        //   ・2025 年時点で収集した極開花（Lv100〜199）の修理秒数サンプル（減少生存1）を基に三次式で回帰。
+        //   ・Lv150 以降の挙動に別定数が使われる可能性は引き続き残るため、追加データ入手時に再度フィッティングする。
         const repaired = g * coefficient * lostHp + 30;
         return Math.max(30, Math.round(repaired));
     }
